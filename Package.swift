@@ -19,7 +19,8 @@ let package = Package(
         )
     ],
     dependencies: [
-        .package(url: "https://github.com/SimplyDanny/SwiftLintPlugins", from: "0.61.0")
+        // SwiftLint commented out to avoid build plugin conflicts when used as a local submodule
+        // .package(url: "https://github.com/SimplyDanny/SwiftLintPlugins", from: "0.61.0")
     ],
     targets: [
         .target(
@@ -38,7 +39,7 @@ let package = Package(
                 .define("DEBUG", .when(configuration: .debug)),
                 .define("RELEASE", .when(configuration: .release))
             ],
-            plugins: [.plugin(name: "SwiftLintBuildToolPlugin", package: "SwiftLintPlugins")],
+            // plugins: [.plugin(name: "SwiftLintBuildToolPlugin", package: "SwiftLintPlugins")],
         ),
         .executableTarget(
             name: "bbcli",

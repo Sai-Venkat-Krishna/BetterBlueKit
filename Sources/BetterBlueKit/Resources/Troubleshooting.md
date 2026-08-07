@@ -1,6 +1,6 @@
-# BetterBlue Troubleshooting
+# GhostBlue Troubleshooting
 
-If none of the below fixes your issue, [open a GitHub issue](https://github.com/schmidtwmark/BetterBlue/issues).
+If none of the below fixes your issue, [open a GitHub issue](https://github.com/schmidtwmark/GhostBlue/issues).
 
 ## Resolving Login Issues
 

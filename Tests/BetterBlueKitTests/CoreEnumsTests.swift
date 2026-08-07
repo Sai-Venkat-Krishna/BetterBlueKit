@@ -104,6 +104,7 @@ struct CoreEnumsTests {
     @Test("FuelType initialization from number")
     func testFuelTypeFromNumber() {
         #expect(FuelType(number: 0) == .gas)
+        #expect(FuelType(number: 1) == .phev)
         #expect(FuelType(number: 2) == .electric)
         #expect(FuelType(number: 5) == .gas) // default case
         #expect(FuelType(number: -1) == .gas) // default case
@@ -112,9 +113,7 @@ struct CoreEnumsTests {
     @Test("FuelType all cases exist")
     func testFuelTypeAllCases() {
         let allCases = FuelType.allCases
-        #expect(allCases.count == 2)
-        #expect(allCases.contains(.gas))
-        #expect(allCases.contains(.electric))
+        #expect(Set(allCases) == [.gas, .phev, .electric])
     }
 
     // MARK: - Utility Function Tests
@@ -154,7 +153,7 @@ struct CoreEnumsTests {
 
     @Test("FuelType is Codable")
     func testFuelTypeCodable() throws {
-        let fuelTypes: [FuelType] = [.gas, .electric]
+        let fuelTypes: [FuelType] = [.gas, .phev, .electric]
 
         for fuelType in fuelTypes {
             let encoded = try JSONEncoder().encode(fuelType)

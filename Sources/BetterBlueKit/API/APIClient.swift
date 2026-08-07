@@ -18,6 +18,10 @@ public struct APIClientConfiguration {
     public let accountId: UUID
     public let logSink: HTTPLogSink?
     public let rememberMeToken: String?
+    /// Long-lived refresh token returned by `login()`. Used by brands/regions that support
+    /// token-based re-auth (Hyundai Europe, Kia Europe) so the app can re-establish a
+    /// session without re-asking the user for their password. Nil for password-only flows.
+    public let refreshToken: String?
     public let redactPII: Bool
     public let deviceId: String?
 
@@ -30,6 +34,7 @@ public struct APIClientConfiguration {
         accountId: UUID,
         logSink: HTTPLogSink? = nil,
         rememberMeToken: String? = nil,
+        refreshToken: String? = nil,
         redactPII: Bool = true,
         deviceId: String? = nil
     ) {
@@ -41,6 +46,7 @@ public struct APIClientConfiguration {
         self.accountId = accountId
         self.logSink = logSink
         self.rememberMeToken = rememberMeToken
+        self.refreshToken = refreshToken
         self.redactPII = redactPII
         self.deviceId = deviceId
     }
@@ -52,6 +58,13 @@ public struct APIClientConfiguration {
 @MainActor
 public protocol APIClientProtocol {
     func login() async throws -> AuthToken
+
+    /// Register the device with the upstream service and return the server-issued device
+    /// identifier. Called before `login()` when the account has no persisted `deviceId`.
+    /// Brands that have no device-registration step inherit the default implementation
+    /// in the protocol extension below, which simply generates a stable local UUID.
+    func registerDevice() async throws -> String
+
     func fetchVehicles(authToken: AuthToken) async throws -> [Vehicle]
     /// Fetch the latest status for a vehicle.
     /// - Parameter cached: When true, return the server-cached snapshot (cheap, instant).
@@ -91,6 +104,14 @@ public enum MFAMethod: String, Sendable {
 // MARK: - Default Implementations
 
 extension APIClientProtocol {
+    /// Default device registration — return a stable client-generated UUID. Existing
+    /// brand clients inherit this and the behavior matches GhostBlue's prior
+    /// `deviceId = UUID().uuidString.uppercased()` line in `BBAccount.initialize`.
+    /// Brands that have a real server-side registration endpoint can override.
+    public func registerDevice() async throws -> String {
+        UUID().uuidString.uppercased()
+    }
+
     public func fetchEVTripDetails(for vehicle: Vehicle, authToken: AuthToken) async throws -> [EVTripDetail]? {
         nil
     }

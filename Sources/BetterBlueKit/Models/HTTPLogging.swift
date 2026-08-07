@@ -13,6 +13,7 @@ public enum HTTPRequestType: String, CaseIterable, Codable, Sendable {
     case login, fetchVehicles, fetchVehicleStatus, sendCommand
     case sendMFA, verifyMFA
     case fetchEVTripDetails
+    case abrpPlan, abrpTelemetry, abrpCarModels
 
     public var displayName: String {
         switch self {
@@ -23,6 +24,9 @@ public enum HTTPRequestType: String, CaseIterable, Codable, Sendable {
         case .sendMFA: "Send MFA"
         case .verifyMFA: "Verify MFA"
         case .fetchEVTripDetails: "Fetch Trip Details"
+        case .abrpPlan: "ABRP Plan"
+        case .abrpTelemetry: "ABRP Telemetry"
+        case .abrpCarModels: "ABRP Car Models"
         }
     }
 }
