@@ -184,7 +184,13 @@ open class APIClientBase {
 
     func handleNetworkError(_ error: Error, context: RequestContext) -> APIError {
         logHTTPRequest(createErrorLogData(context: context, error: error.localizedDescription))
-        return APIError(message: "Network error: \(error.localizedDescription)", apiName: apiName)
+        // The URLError code (always negative) lets callers tell a transport
+        // failure such as no connection or a timeout from a server answer.
+        return APIError(
+            message: "Network error: \(error.localizedDescription)",
+            code: (error as? URLError)?.code.rawValue,
+            apiName: apiName
+        )
     }
 
     // MARK: - Logging Helpers
