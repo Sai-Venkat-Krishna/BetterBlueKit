@@ -94,22 +94,26 @@ public class FakeAPIClient: APIClientProtocol {
         // has something realistic to render. Pattern is a daily commute + weekend road trip,
         // sized to give the energy-breakdown bars visible variation. Skips when the fake
         // vehicle isn't electric — same gate the real Hyundai client uses.
+        // Each trip starts at a fixed hour on its day, so repeated fetches return the
+        // same trips (and trip-archive keys) and only a new day brings new ones.
         guard vehicle.fuelType.hasElectricCapability else { return nil }
-        let day: TimeInterval = 24 * 60 * 60
-        let now = Date()
-        let template: [(distance: Double, durationMin: Int, totalWh: Int, regenWh: Int, climateWh: Int, drivetrainWh: Int)] = [
-            (28.4, 45, 8_950, 1_140, 720, 6_950),
-            (12.1, 24, 3_820, 380, 240, 3_010),
-            (46.7, 72, 14_120, 2_010, 980, 10_640),
-            (8.3, 18, 2_710, 220, 410, 1_950),
-            (35.6, 58, 11_330, 1_540, 880, 8_410),
-            (19.2, 31, 6_120, 690, 410, 4_710),
-            (112.5, 165, 33_980, 4_120, 2_140, 26_540)
+        let calendar = Calendar.current
+        let today = calendar.startOfDay(for: Date())
+        let template: [(distance: Double, durationMin: Int, totalWh: Int, regenWh: Int, climateWh: Int, drivetrainWh: Int, startHour: Int)] = [
+            (28.4, 45, 8_950, 1_140, 720, 6_950, 8),
+            (12.1, 24, 3_820, 380, 240, 3_010, 17),
+            (46.7, 72, 14_120, 2_010, 980, 10_640, 7),
+            (8.3, 18, 2_710, 220, 410, 1_950, 12),
+            (35.6, 58, 11_330, 1_540, 880, 8_410, 8),
+            (19.2, 31, 6_120, 690, 410, 4_710, 18),
+            (112.5, 165, 33_980, 4_120, 2_140, 26_540, 10)
         ]
         let baseOdometer: Double = 12_345
         return template.enumerated().map { (offset, t) -> EVTripDetail in
             let remainder = template.dropFirst(offset + 1).map(\.distance).reduce(0, +)
             let avg = t.durationMin > 0 ? t.distance / (Double(t.durationMin) / 60.0) : 0
+            let tripDay = calendar.date(byAdding: .day, value: -(offset + 1), to: today) ?? today
+            let startDate = calendar.date(bySettingHour: t.startHour, minute: 0, second: 0, of: tripDay) ?? tripDay
             return EVTripDetail(
                 distance: t.distance,
                 odometer: baseOdometer + remainder,
@@ -119,7 +123,7 @@ public class FakeAPIClient: APIClientProtocol {
                 climateEnergy: t.climateWh,
                 drivetrainEnergy: t.drivetrainWh,
                 batteryCareEnergy: Int(Double(t.totalWh) * 0.02),
-                startDate: now.addingTimeInterval(-Double(offset + 1) * day),
+                startDate: startDate,
                 durationSeconds: t.durationMin * 60,
                 avgSpeed: avg,
                 maxSpeed: avg + 18.0
